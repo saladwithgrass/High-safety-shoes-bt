@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/black">
 
     <TimePicker
         android:id="@+id/timePicker"
@@ -21,9 +22,11 @@
         android:id="@+id/setTimeBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="НАСТРОИТЬ"
+        android:text="УСТАНОВИТЬ"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/timePicker" />
+        app:layout_constraintTop_toBottomOf="@+id/timePicker"
+        android:background="@drawable/connect_button_backround"
+        android:layout_margin="2dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

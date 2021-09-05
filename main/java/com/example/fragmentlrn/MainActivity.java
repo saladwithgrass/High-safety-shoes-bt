@@ -1,6 +1,7 @@
 package com.example.fragmentlrn;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -53,6 +54,8 @@ public class MainActivity extends AppCompatActivity {
     private FragmentSettings fragmentSettings;
     private FragmentLogo fragmentLogo;
 
+    public BluetoothAdapter adapter;
+
 
     static public MainActivity toMainActivity(Context context) {
         return (MainActivity)context;
@@ -80,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 navigateTo(1);
             }
         }, 1000);
+        adapter = BluetoothAdapter.getDefaultAdapter();
     }
 
     private void setupViewPager(ViewPager2 viewPager) {

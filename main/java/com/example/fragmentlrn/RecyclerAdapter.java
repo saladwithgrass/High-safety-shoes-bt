@@ -23,6 +23,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     private ItemClickListener mClickListener;
     private final String TAG = "RecyclerAdapter";
     private int selected;
+    private ViewHolder lastChecked = null;
 
     public RecyclerAdapter(Context context, List<BluetoothDevice> devices) {
         nameData = new ArrayList<>();
@@ -45,10 +46,18 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         String name = nameData.get(position);
         holder.nameTv.setText(name);
         String mac = macData.get(position);
-        holder.macTv.setText(mac);
+        // holder.macTv.setText(mac);
     }
 
-    public int getSelected() {return selected;}
+    public int getSelected() { return selected; }
+
+    public void select(int position) {
+
+    }
+
+    public void unselectAll() {
+
+    }
 
     @Override
     public int getItemCount() {
@@ -94,7 +103,10 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         public void onClick(View v) {
             Log.d(TAG, "onClick: clicked");
             if (getSelected() != getAdapterPosition()) {
-
+                setSelected();
+                if (lastChecked != null) lastChecked.setUnselected();
+                lastChecked = this;
+                selected = getAdapterPosition();
             }
             mClickListener.onItemClick(v, getAdapterPosition());
         }

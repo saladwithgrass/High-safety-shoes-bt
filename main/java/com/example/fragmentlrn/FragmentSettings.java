@@ -66,6 +66,7 @@ public class FragmentSettings extends Fragment {
         timeDialogFragment = new TimeDialogFragment();
         lDevices = new ArrayList<>();
         rDevices = new ArrayList<>();
+        lDevices.addAll(getMainActivity(getActivity()).adapter.getBondedDevices());
         dialogFound = new DialogFound(lDevices);
 
         timerUsed = false;

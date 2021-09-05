@@ -184,7 +184,7 @@
                 android:fontFamily="@font/din_pro_bold"
                 android:padding="20dp"
                 android:text="ЭКО"
-                android:textSize="24sp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/Tv25percent"
@@ -212,7 +212,7 @@
                 android:padding="20dp"
                 android:text="НОРМ"
                 android:textColor="@color/techOrange"
-                android:textSize="24sp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/Tv50percent"
@@ -240,7 +240,7 @@
                 android:padding="20dp"
                 android:text="МАКС"
                 android:textColor="@color/techOrange"
-                android:textSize="24sp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:id="@+id/Tv100percent"

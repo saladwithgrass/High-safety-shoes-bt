@@ -9,7 +9,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/devicesRv"/>
+        android:id="@+id/devicesRv"
+        android:paddingVertical="10dp"/>
 
 
     <Button
@@ -22,5 +23,6 @@
         android:textAllCaps="false"
         android:text="Подключить"
         android:textSize="18sp"
+        android:layout_margin="5dp"
         />
 </LinearLayout>

@@ -39,6 +39,7 @@ public class TimeDialogFragment extends DialogFragment {
         View v = inflater.inflate(R.layout.time_dialog, null);
         setTime = v.findViewById(R.id.setTimeBtn);
         picker = v.findViewById(R.id.timePicker);
+        picker.setIs24HourView(true);
         setTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
