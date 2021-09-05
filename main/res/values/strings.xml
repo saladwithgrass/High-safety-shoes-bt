@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">fragmentlrn</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="leftRu">ЛЕВЫЙ</string>
+    <string name="rightRu">ПРАВЫЙ</string>
+    <string name="leftBootName">HSSHOEL</string>
+    <string name="rightBootName">BT05</string>
+</resources>

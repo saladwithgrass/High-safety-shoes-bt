@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+        <item android:state_checked="true">
+            <shape android:shape="rectangle">
+                <solid android:color="@color/techOrange"/>
+                <size android:height="@dimen/track_height"/>
+                <corners android:radius="@dimen/track_radius"/>
+                <padding android:bottom="10dp"
+                    android:top="10dp" />
+            </shape>
+        </item>
+
+        <item android:state_checked="false">
+            <shape android:shape="rectangle">
+                <solid android:color="@color/black"/>
+                <stroke android:color="@color/techOrange"
+                    android:width="@dimen/track_stroke_width"/>
+                <size android:height="@dimen/track_height"/>
+                <corners android:radius="@dimen/track_radius"/>
+                <padding android:bottom="10dp"
+                    android:top="10dp"/>
+            </shape>
+        </item>
+
+
+
+
+</selector>
+

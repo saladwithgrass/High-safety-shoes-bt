@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    tools:context=".MainActivity">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:padding="0dp"
+            app:srcCompat="@drawable/back_button_drawable"/>
+
+    <TextView
+        android:id="@+id/connectionTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="1dp"
+        android:fontFamily="@font/din_pro_medium"
+        android:text="ПОДКЛЮЧЕНИЕ"
+        android:textColor="@color/techOrange"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@id/connectionStateLl"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/backButton" />
+
+        <LinearLayout
+            android:id="@+id/connectionStateLl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="32dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/connectGuideTv"
+            app:layout_constraintTop_toBottomOf="@id/connectionTv">
+
+
+            <ImageButton
+                android:id="@+id/leftConnectionStateBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/left_on_drawable"
+                android:adjustViewBounds="true"
+                android:scaleType="fitXY"
+                android:padding="0dp"
+                android:layout_marginEnd="5dp"/>
+
+            <ImageButton
+                android:id="@+id/rightConnectionStateBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:adjustViewBounds="true"
+                android:scaleType="fitXY"
+                android:padding="0dp"
+                android:layout_marginStart="5dp"
+                app:srcCompat="@drawable/right_off_drawable" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/connectGuideTv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Для подключения нажмите кнопку на ботинке"
+            android:textColor="@color/grey"
+            android:layout_marginHorizontal="32dp"
+            android:gravity="center"
+            android:textSize="13dp"
+            android:layout_marginBottom="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/infoModesLl"
+            app:layout_constraintTop_toBottomOf="@id/connectionStateLl"/>
+
+        <LinearLayout
+            android:id="@+id/infoModesLl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/connectGuideTv">
+
+            <ImageView
+                android:id="@+id/imageView3"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/green_circle" />
+
+            <TextView
+                android:id="@+id/greenMeaningTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Подключен"
+                android:textSize="12sp"
+                android:textColor="@color/grey"/>
+
+            <ImageView
+                android:id="@+id/imageView4"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/yellow_circle" />
+
+            <TextView
+                android:id="@+id/yellowMeaningTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Подключается"
+                android:textSize="12sp"
+                android:textColor="@color/grey"/>
+
+            <ImageView
+                android:id="@+id/imageView5"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/red_circle" />
+
+            <TextView
+                android:id="@+id/redMeaningTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Не подключен"
+                android:textSize="12sp"
+                android:textColor="@color/grey"/>
+        </LinearLayout>
+
+    <TextView
+        android:id="@+id/workingModeTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="1dp"
+        android:fontFamily="@font/din_pro_medium"
+        android:text="РЕЖИМ РАБОТЫ"
+        android:textColor="@color/techOrange"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/modeButtonsLl"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/modeButtonsLl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/timersLl"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/infoModesLl">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/ecoButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="0dp"
+                android:background="@drawable/button_eco_on_drawable"
+                android:fontFamily="@font/din_pro_bold"
+                android:padding="20dp"
+                android:text="ЭКО"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/Tv25percent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="25%"
+                android:textColor="@color/grey"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/normButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="0dp"
+                android:background="@drawable/button_norm_off_drawable"
+                android:fontFamily="@font/din_pro_bold"
+                android:padding="20dp"
+                android:text="НОРМ"
+                android:textColor="@color/techOrange"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/Tv50percent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="50%"
+                android:textColor="@color/grey"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/maxButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="0dp"
+                android:background="@drawable/button_max_off_drawable"
+                android:fontFamily="@font/din_pro_bold"
+                android:padding="20dp"
+                android:text="МАКС"
+                android:textColor="@color/techOrange"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/Tv100percent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:gravity="center"
+                android:text="100%"
+                android:textColor="@color/grey"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/timerSw"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="1dp"
+        android:fontFamily="@font/din_pro_medium"
+        android:text="УСТАНОВИТЬ ТАЙМЕР"
+        android:textColor="@color/techOrange"
+        android:textSize="18sp"
+        android:thumb="@drawable/switch_thumb_drawable"
+        app:layout_constraintBottom_toTopOf="@id/timersLl"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:track="@drawable/switch_track_drawable" />
+
+    <LinearLayout
+        android:id="@+id/timersLl"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="100dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="14dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/startTimeBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/timer_off_button_drawable"
+                android:fontFamily="@font/din_pro_medium"
+                android:gravity="center"
+                android:paddingBottom="16dp"
+                android:paddingTop="7dp"
+                android:text="13:00"
+                android:textColor="@color/white"
+                android:textSize="36sp" />
+
+            <TextView
+                android:id="@+id/beginTv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/din_pro"
+                android:gravity="center"
+                android:text="Начало"
+                android:textColor="@color/grey"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/finishTimeBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/timer_off_button_drawable"
+                android:fontFamily="@font/din_pro_medium"
+                android:gravity="center"
+                android:paddingBottom="16dp"
+                android:paddingTop="7dp"
+                android:text="17:00"
+                android:textColor="@color/white"
+                android:textSize="36sp" />
+
+            <TextView
+                android:id="@+id/endTv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/din_pro"
+                android:gravity="center"
+                android:text="Конец"
+                android:textColor="@color/grey"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    >
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:src="@drawable/unchecked_drawable"
+        android:adjustViewBounds="true"
+        android:id="@+id/selectedIv"
+        />
+
+    <TextView
+        android:id="@+id/nameTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="HSSHOExxxx"
+        android:textColor="@color/black"
+        android:background="@color/white"
+        android:fontFamily="@font/din_pro"
+        android:textSize="15sp"/>
+    <!--<TextView
+        android:id="@+id/macTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="24:D6:68:5E:45:EE" />-->
+
+</LinearLayout>

@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+
+    <ImageView
+        android:id="@+id/leftBatteryIv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="10dp"
+        android:adjustViewBounds="true"
+        android:padding="0dp"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toTopOf="@+id/temperatureTv"
+        app:layout_constraintEnd_toStartOf="@+id/rightBatteryIv"
+        app:layout_constraintStart_toStartOf="@+id/view"
+        app:layout_constraintTop_toTopOf="@+id/view"
+        app:layout_constraintVertical_bias="1.0"
+        app:srcCompat="@drawable/_100_battery_drawable" />
+
+    <ImageView
+        android:id="@+id/rightBatteryIv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="59dp"
+        android:layout_marginEnd="50dp"
+        android:adjustViewBounds="true"
+        android:padding="0dp"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="@+id/leftBatteryIv"
+        app:layout_constraintEnd_toEndOf="@+id/view"
+        app:layout_constraintStart_toEndOf="@+id/leftBatteryIv"
+        app:srcCompat="@drawable/_20_battery_drawable" />
+
+    <TextView
+        android:id="@+id/leftChargeTv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="20%"
+        android:fontFamily="@font/din_pro"
+        android:gravity="start"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="@id/view"
+        app:layout_constraintTop_toTopOf="@id/rightBatteryIv"
+        app:layout_constraintStart_toEndOf="@id/rightBatteryIv"
+        app:layout_constraintBottom_toBottomOf="@id/rightBatteryIv"/>
+
+    <TextView
+        android:id="@+id/rightChargeTv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="100%"
+        android:fontFamily="@font/din_pro"
+        android:gravity="end"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toStartOf="@id/leftBatteryIv"
+        app:layout_constraintTop_toTopOf="@id/leftBatteryIv"
+        app:layout_constraintStart_toStartOf="@id/view"
+        app:layout_constraintBottom_toBottomOf="@id/leftBatteryIv"
+        />
+
+    <TextView
+        android:id="@+id/leftTextTv"
+        android:layout_width="43dp"
+        android:layout_height="15dp"
+        android:text="@string/leftRu"
+        android:fontFamily="@font/din_pro_medium"
+        android:textColor="@color/techOrange"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/leftBatteryIv"
+        app:layout_constraintStart_toStartOf="@+id/leftBatteryIv"
+        app:layout_constraintTop_toTopOf="@+id/view" />
+
+    <TextView
+        android:id="@+id/rightTextTv"
+        android:layout_width="51dp"
+        android:layout_height="15dp"
+        android:text="@string/rightRu"
+        android:fontFamily="@font/din_pro_medium"
+        android:textAlignment="viewEnd"
+        android:textColor="@color/techOrange"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/leftTextTv"
+        app:layout_constraintEnd_toEndOf="@+id/rightBatteryIv" />
+
+    <ImageButton
+        android:id="@+id/onOffBtn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="-0.3dp"
+        android:layout_marginEnd="-0.3dp"
+        android:layout_marginBottom="43dp"
+        android:adjustViewBounds="true"
+        android:elevation="5dp"
+        android:padding="0dp"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="@id/view"
+        app:layout_constraintStart_toStartOf="@id/view"
+        app:srcCompat="@drawable/turn_on_drawable" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="47dp"
+        android:background="@drawable/rectangle_drawable"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/temperatureTv"
+        android:layout_width="298dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="60dp"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:padding="0dp"
+        android:text="23°"
+        android:fontFamily="@font/leaguegothic_regular"
+        android:textColor="@color/techOrange"
+        android:textSize="124sp"
+        app:layout_constraintBottom_toTopOf="@+id/onOffBtn"
+        app:layout_constraintEnd_toEndOf="@+id/view"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="@+id/view"
+        app:layout_constraintTop_toBottomOf="@id/leftBatteryIv" />
+
+    <TextView
+        android:id="@+id/modeTv"
+        android:layout_width="114dp"
+        android:layout_height="22dp"
+        android:layout_marginStart="90dp"
+        android:layout_marginEnd="90dp"
+        android:gravity="center"
+        android:text="РЕЖИМ | ЭКО"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/onOffBtn"
+        app:layout_constraintEnd_toEndOf="@+id/view"
+        app:layout_constraintStart_toStartOf="@+id/view"
+        app:layout_constraintTop_toBottomOf="@+id/temperatureTv" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/lighterButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:padding="0dp"
+            android:scaleType="fitXY"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/lighter_off_drawable" />
+
+        <ImageButton
+            android:id="@+id/settingsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="32dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:padding="0dp"
+            android:scaleType="fitXY"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@drawable/settings_drawable" />
+
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
