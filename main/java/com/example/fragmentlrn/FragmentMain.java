@@ -104,19 +104,31 @@ public class FragmentMain extends Fragment {
         textView.setText(stringBuilder);
     }
 
+    public boolean isOn() {
+        return isOn;
+    }
+
+    private void update() {
+        ((MainActivity)getActivity()).sendMessage();
+    }
+
     private void setOnOff(boolean on) {
+        ((MainActivity)getActivity()).setOn(on);
         if (on) {
             onOffButton.setImageResource(R.drawable.turn_off_drawable);
         } else {
             onOffButton.setImageResource(R.drawable.turn_on_drawable);
         }
+        update();
     }
 
     private void setLighter(boolean on) {
+        ((MainActivity)getActivity()).setLighterOn(on);
         if (on) {
             lighterBtn.setImageResource(R.drawable.lighter_on_drawable);
         } else {
             lighterBtn.setImageResource(R.drawable.lighter_off_drawable);
         }
+        update();
     }
 }

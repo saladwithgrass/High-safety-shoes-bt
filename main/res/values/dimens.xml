@@ -7,4 +7,7 @@
     <dimen name="track_height">20dp</dimen>
     <dimen name="track_radius">50dp</dimen>
     <dimen name="track_stroke_width">2dp</dimen>
+    <dimen name="text_size_mode_button">18sp</dimen>
+    <dimen name="colorful_circle_padding">3dp</dimen>
+    <dimen name="space_below_headers">16dp</dimen>
 </resources>

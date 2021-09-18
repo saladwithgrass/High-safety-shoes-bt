@@ -2,7 +2,6 @@ package com.example.fragmentlrn;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,26 +12,24 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.RecyclerView;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.fragmentlrn.MainActivity.MODE_CONNECTED;
+import static com.example.fragmentlrn.MainActivity.MODE_CONNECTING;
+import static com.example.fragmentlrn.MainActivity.MODE_DISCONNECTED;
 import static com.example.fragmentlrn.MainActivity.getMainActivity;
+import static com.example.fragmentlrn.MainActivity.pxToSp;
 
 public class FragmentSettings extends Fragment {
 
     private String TAG = "SettingsFrag";
 
-    private final int MODE_ECO = 0, MODE_NORM = 1, MODE_MAX = 2;
+    private final int MODE_ECO = 1, MODE_NORM = 2, MODE_MAX = 3;
     private List<BluetoothDevice> lDevices, rDevices;
     private ImageButton backBtn, leftConnectBtn, rightConnectBtn;
     private Button ecoBtn, normBtn, maxBtn, startTimeBtn, endTimeBtn;
@@ -66,8 +63,11 @@ public class FragmentSettings extends Fragment {
         timeDialogFragment = new TimeDialogFragment();
         lDevices = new ArrayList<>();
         rDevices = new ArrayList<>();
-        lDevices.addAll(getMainActivity(getActivity()).adapter.getBondedDevices());
+        lDevices.addAll(mainActivity().adapter.getBondedDevices());
         dialogFound = new DialogFound(lDevices);
+
+        setLeftButtonMode(MODE_CONNECTING);
+        setRightButtonMode(MODE_CONNECTING);
 
         timerUsed = false;
 
@@ -123,14 +123,16 @@ public class FragmentSettings extends Fragment {
         leftConnectBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialogFound.show(getActivity().getSupportFragmentManager(), "left");
+                mainActivity().scanForDevices();
+                showListOfDevices("left");
             }
         });
 
         rightConnectBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialogFound.show(getActivity().getSupportFragmentManager(), "right");
+                mainActivity().scanForDevices();
+                showListOfDevices("right");
             }
         });
 
@@ -149,6 +151,45 @@ public class FragmentSettings extends Fragment {
         /*Log.d(TAG, "onCreateView: " + endTimeBtn.getBackground());*/
         setEcoBtn(true);
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume: " + ecoBtn.getTextSize());
+        // checkModeButtonHeight();
+    }
+
+    private void checkModeButtonHeight() {
+        if (ecoBtn.getHeight() != normBtn.getHeight() && (ecoBtn.getTextSize() > 30)) {
+            Log.d(TAG, "checkModeButtonHeight: eco and norm buttons have unequal height");
+            Log.d(TAG, "checkModeButtonHeight: scaling font down to " + (ecoBtn.getTextSize() - 1));
+            ecoBtn.setTextSize(pxToSp(ecoBtn.getTextSize() - 1, getContext()));
+            normBtn.setTextSize( pxToSp(normBtn.getTextSize() - 1, getContext()));
+            maxBtn.setTextSize(pxToSp(maxBtn.getTextSize() - 1, getContext()));
+            checkModeButtonHeight();
+        }
+        Log.d(TAG, "checkModeButtonHeight: all ok");
+        normBtn.setHeight(ecoBtn.getHeight());
+        Log.d(TAG, "checkModeButtonHeight: eco: " + ecoBtn.getHeight() + " norm: " + normBtn.getHeight());
+    }
+
+    private MainActivity mainActivity() {
+        return getMainActivity(getActivity());
+    }
+
+    private void update() {
+        mainActivity().sendMessage();
+    }
+
+    private void showListOfDevices(String tag) {
+        if (!tag.equals("right") && !tag.equals("left")) {
+            Log.e(TAG, "showListOfDevices: wrong tag: " + tag);
+            return;
+        }
+        Log.d(TAG, "showListOfDevices: showing " + tag + " devices");
+        // dialogFound.setDeviceList(tag.equals("right") ? mainActivity().service.getRightDeviceList() : mainActivity().service.getLeftDeviceList(), tag.equals("left"));
+        dialogFound.show(getActivity().getSupportFragmentManager(), tag);
     }
 
     private void setEcoBtn(boolean on) {
@@ -195,7 +236,8 @@ public class FragmentSettings extends Fragment {
 
     private void setMode(int mode) {
         Log.d(TAG, "setMode: " + endTimeBtn.getBackground());
-        FragmentMain mainFragment = (FragmentMain)(getMainActivity(getActivity()).getFragment(1));
+        FragmentMain mainFragment = (FragmentMain)(mainActivity().getFragment(1));
+        mainActivity().setPowerMode(mode);
         if (mode == MODE_ECO) {
             setEcoBtn(true);
             setNormBtn(false);
@@ -212,6 +254,7 @@ public class FragmentSettings extends Fragment {
             setMaxBtn(true);
             mainFragment.setModeText("МАКС");
         }
+        update();
     }
 
     private void setTimerUsed(boolean used) {
@@ -223,6 +266,71 @@ public class FragmentSettings extends Fragment {
             startTimeBtn.setBackgroundResource(R.drawable.timer_off_button_drawable);
             endTimeBtn.setBackgroundResource(R.drawable.timer_off_button_drawable);
         }
+    }
+
+    public void setLeftButtonMode(int mode) {
+        Log.d(TAG, "setLeftButtonMode: " + mode);
+        switch (mode) {
+            case MODE_CONNECTED: setLeftButtonConnected(); break;
+            case MODE_DISCONNECTED: setLeftButtonDisconnected(); break;
+            case MODE_CONNECTING: setLeftButtonYellow(); break;
+        }
+    }
+
+    public void setRightButtonMode(int mode) {
+        Log.d(TAG, "setRightButtonMode: " + mode);
+        switch (mode) {
+            case MODE_CONNECTED: setRightButtonConnected(); break;
+            case MODE_DISCONNECTED: setRightButtonDisconnected(); break;
+            case MODE_CONNECTING: setRightButtonYellow(); break;
+
+        }
+    }
+
+    private void setLeftButtonConnected() {
+        Log.d(TAG, "setLeftButtonConnected: ");
+        leftConnectBtn.setImageResource(R.drawable.left_on_drawable);
+    }
+
+    private void setLeftButtonDisconnected() {
+        Log.d(TAG, "setLeftButtonDisconnected: ");
+        leftConnectBtn.setImageResource(R.drawable.left_off_drawable);
+    }
+
+    private void setLeftButtonYellow() {
+        Log.d(TAG, "setLeftButtonYellow: ");
+        leftConnectBtn.setImageResource(R.drawable.left_yellow_drawable);
+    }
+
+    private void setRightButtonConnected() {
+        Log.d(TAG, "setRightButtonConnected: ");
+        rightConnectBtn.setImageResource(R.drawable.right_on_drawable);
+    }
+
+    private void setRightButtonDisconnected() {
+        Log.d(TAG, "setRightButtonDisconnected: ");
+        rightConnectBtn.setImageResource(R.drawable.right_off_drawable);
+    }
+
+    private void setRightButtonYellow() {
+        Log.d(TAG, "setRightButtonYellow: ");
+        rightConnectBtn.setImageResource(R.drawable.right_yellow_drawable);
+    }
+
+    public void updateList() {
+        if (dialogFound == null) {
+            Log.e(TAG, "updateList: dialog found is null");
+            return;
+        }
+
+        Log.d(TAG, "updateList: updating list");
+            if (dialogFound.isLeft()) {
+                Log.d(TAG, "updateList: setting new left device list");
+                dialogFound.setDeviceList(mainActivity().service.getLeftDevicesList(), true);
+            } else {
+                Log.d(TAG, "updateList: setting new right device list");
+                dialogFound.setDeviceList(mainActivity().service.getRightDevicesList(), false);
+            }
     }
 
 }

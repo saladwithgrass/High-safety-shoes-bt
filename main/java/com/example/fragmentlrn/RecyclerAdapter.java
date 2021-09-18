@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -22,13 +21,15 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
     private final String TAG = "RecyclerAdapter";
-    private int selected;
+    private int selectedIndex = -1;
     private ViewHolder lastChecked = null;
 
     public RecyclerAdapter(Context context, List<BluetoothDevice> devices) {
+        // Log.d(TAG, "RecyclerAdapter: checking selected index " + selectedIndex);
         nameData = new ArrayList<>();
         macData = new ArrayList<>();
         deviceData = devices;
+        // selectedIndex = -1;
         for (BluetoothDevice device : devices) {
             nameData.add(device.getName());
             macData.add(device.getAddress());
@@ -36,20 +37,55 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         this.mInflater = LayoutInflater.from(context);
     }
 
+    public RecyclerAdapter(Context context, List<BluetoothDevice> devices, int selected) {
+        // Log.d(TAG, "RecyclerAdapter: checking selected index " + selectedIndex + " selected :" + selected);
+        nameData = new ArrayList<>();
+        macData = new ArrayList<>();
+        deviceData = devices;
+        // this.selectedIndex = selected;
+        for (BluetoothDevice device : devices) {
+            nameData.add(device.getName());
+            macData.add(device.getAddress());
+        }
+        if (lastChecked != null) {
+            lastChecked.setSelected();
+        }
+        this.mInflater = LayoutInflater.from(context);
+    }
+
+    public void noInit(Context context) {
+        if (lastChecked != null) lastChecked.setSelected();
+        this.mInflater = LayoutInflater.from(context);
+    }
+
     public ViewHolder onCreateViewHolder( ViewGroup parent, int viewType) {
+        // Log.d(TAG, "onCreateViewHolder: checking selected index " + selectedIndex);
         View view = mInflater.inflate(R.layout.recycler_item, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder( RecyclerAdapter.ViewHolder holder, int position) {
+        // Log.d(TAG, "onBindViewHolder: checking selected index " + selectedIndex);
         String name = nameData.get(position);
         holder.nameTv.setText(name);
         String mac = macData.get(position);
+        holder.device = deviceData.get(position);
+        if (deviceData.size() > 0 && selectedIndex >=0 && selectedIndex < deviceData.size())
+            if (deviceData.get(selectedIndex).equals(deviceData.get(position))) holder.setSelected();
         // holder.macTv.setText(mac);
     }
 
-    public int getSelected() { return selected; }
+    public int getSelectedIndex() {
+        // Log.d(TAG, "getSelectedIndex: checking selected index "  +selectedIndex);
+        return selectedIndex;
+    }
+
+    public BluetoothDevice getSelectedDevice() {
+        Log.d(TAG, "getSelectedDevice: ");
+        // Log.d(TAG, "getSelectedDevice: checking selected index " + selectedIndex);
+        return getDevice(getSelectedIndex());
+    }
 
     public void select(int position) {
 
@@ -61,6 +97,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     @Override
     public int getItemCount() {
+        // Log.d(TAG, "getItemCount: checking selected index " + selectedIndex);
         return nameData.size();
     }
 
@@ -72,9 +109,13 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         return nameData.get(id);
     }
 
-    BluetoothDevice getDevice(int id) { return deviceData.get(id); }
+    BluetoothDevice getDevice(int id) {
+        // Log.d(TAG, "getDevice: checking selected index " + selectedIndex);
+        return deviceData.get(id);
+    }
 
     void setClickListener(ItemClickListener itemClickListener) {
+        // Log.d(TAG, "setClickListener: checking selected index " + selectedIndex);
         this.mClickListener = itemClickListener;
     }
 
@@ -82,33 +123,37 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
         private TextView nameTv, macTv;
         private ImageView selectedIv;
-
+        private BluetoothDevice device;
 
         public ViewHolder(View itemView) {
             super(itemView);
+            // Log.d(TAG, "ViewHolder: checking selected index " + selectedIndex);
             nameTv = itemView.findViewById(R.id.nameTv);
             selectedIv = itemView.findViewById(R.id.selectedIv);
             itemView.setOnClickListener(this);
         }
 
         private void setSelected() {
+            // Log.d(TAG, "setSelected: checking selected index " + selectedIndex);
             selectedIv.setImageResource(R.drawable.checked_drawable);
         }
 
         private void setUnselected() {
+            // Log.d(TAG, "setUnselected: checking selected index " + selectedIndex);
             selectedIv.setImageResource(R.drawable.unchecked_drawable);
         }
 
         @Override
         public void onClick(View v) {
+            // Log.d(TAG, "onClick: checking selected index " + selectedIndex);
             Log.d(TAG, "onClick: clicked");
-            if (getSelected() != getAdapterPosition()) {
+            if (getSelectedIndex() != getAdapterPosition()) {
                 setSelected();
                 if (lastChecked != null) lastChecked.setUnselected();
                 lastChecked = this;
-                selected = getAdapterPosition();
+                selectedIndex = getAdapterPosition();
             }
-            mClickListener.onItemClick(v, getAdapterPosition());
+            // mClickListener.onItemClick(v, getAdapterPosition());
         }
     }
 
