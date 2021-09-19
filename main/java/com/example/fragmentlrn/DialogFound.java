@@ -40,6 +40,7 @@ public class DialogFound extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         getDialog().setTitle("FOUND!");
+        Log.d(TAG, "onCreateView: start");
         View v = inflater.inflate(R.layout.found_devices, null);
         RecyclerAdapter mAdapter;
         if (devicesRv != null) {
@@ -63,6 +64,15 @@ public class DialogFound extends DialogFragment {
         devicesRv.setAdapter(mAdapter);
         btn = v.findViewById(R.id.connectBtn);
         setNewAdapterForButton(mAdapter);
+        if (getTag() == null) {
+            Log.e(TAG, "onCreateView: tag is null" );
+        } else if (getTag().equals("left")) {
+            setDeviceList(getMainActivity(getActivity()).service.getLeftDevicesList(), true);
+        } else if (getTag().equals("right")) {
+            setDeviceList(getMainActivity(getActivity()).service.getRightDevicesList(), false);
+        } else {
+            Log.e(TAG, "onCreateView: this is not right nor left");
+        }
         return v;
     }
 

@@ -106,7 +106,7 @@ public class SimpleBluetoothService {
     }
 
     public SimpleBluetoothService(Context context) {
-        Log.d(TAG, "SimpleBluetoothService: staring");
+        Log.d(TAG, "SimpleBluetoothService: starting");
         this.context = context;
         manager = (BluetoothManager) context.getSystemService(BLUETOOTH_SERVICE);
         adapter = BluetoothAdapter.getDefaultAdapter();
@@ -148,8 +148,8 @@ public class SimpleBluetoothService {
             if (status == GATT_SUCCESS) {
                 if (newState == STATE_CONNECTED) {
                     Log.d(TAG, "onConnectionStateChange: connected, processing bonding");
-                    if (bondState == BOND_BONDED) {
-                        Log.i(TAG, "onConnectionStateChange: successfully connected, proceeding to process");
+                    if (bondState == BOND_BONDED || bondState == BOND_NONE) {
+                        Log.i(TAG, "onConnectionStateChange: successfully connected && bonded, proceeding to process");
 
                         int delayBonded = 1000;
 
@@ -331,6 +331,7 @@ public class SimpleBluetoothService {
             String message;
             message = characteristic.getStringValue(0);
             Log.d(TAG, "onCharacteristicChanged: received message: " + message);
+            mainActivity().toast(message);
             ((MainActivity) context).parseAndExecute(message);
             Log.d(TAG, "onCharacteristicChanged: completes");
             completeTask();
@@ -375,11 +376,19 @@ public class SimpleBluetoothService {
                 Log.e(TAG, "onScanResult: name is wrong "  + device.getName());
                 return;
             }
-            if (device.getAddress().equals(leftSavedMac)) {
+            if (device.getAddress().equals(leftSavedMac) && device.getName().contains(lName)) {
                 Log.d(TAG, "onScanResult: left saved mac " + leftSavedMac + " found");
+                if (device.getAddress().equals(rightSavedMac)) {
+                    Log.e(TAG, "onScanResult: left mac also equals right, cleaning right mac" );
+                    mainActivity().rememberRightAddress("");
+                }
                 connectLeft(device);
-            } else if (device.getAddress().equals(rightSavedMac)) {
+            } else if (device.getAddress().equals(rightSavedMac) && device.getName().contains(rName)) {
                 Log.d(TAG, "onScanResult: right saved mac " + rightSavedMac + " found");
+                if (device.getAddress().equals(leftSavedMac)) {
+                    Log.e(TAG, "onScanResult: right mac also equals left, cleaning left mac");
+                    mainActivity().rememberLeftAddress("");
+                }
                 connectRight(device);
             } else {
                 Log.d(TAG, "onScanResult: that's none of the saved macs");
@@ -393,7 +402,6 @@ public class SimpleBluetoothService {
             Log.e(TAG, "onScanFailed: scan failed: " + errorCode);
         }
     };
-
 
     private abstract class Task implements Runnable {
         protected int code;
@@ -546,6 +554,24 @@ public class SimpleBluetoothService {
 
         @Override
         public void run() {
+            if (!lConnected) {
+                Log.e(TAG, "run: left not connected, not sending");
+                completeTask();
+                return;
+            }
+
+            if (lGatt == null) {
+                Log.e(TAG, "run: lgatt is null, not sending");
+                completeTask();
+                return;
+            }
+
+            if (lWriteCharacteristic == null) {
+                Log.e(TAG, "run: lcharacteristic is null" );
+                completeTask();
+                return;
+            }
+
             Log.d(TAG, "TaskSendLeft: sending " + message);
             if (manager.getConnectionState(lBoot, GATT) != STATE_CONNECTED) {
                 Log.e(TAG, "TaskSendLeft: left device not connected, cant send");
@@ -610,13 +636,26 @@ public class SimpleBluetoothService {
                 completeTask();
                 return;
             }
+            if (rGatt == null) {
+                Log.e(TAG, "run: rgatt is null, not sending");
+                completeTask();
+                return;
+            }
+
             Log.d(TAG, "TaskSendRight: sending " + message);
             if (manager.getConnectionState(rBoot, GATT) != STATE_CONNECTED) {
                 Log.e(TAG, "TaskSendRight: right not connected, not sending");
                 completeTask();
                 return;
             }
-            int writeProperty, writeType = lWriteCharacteristic.getWriteType();
+
+            if (rWriteCharacteristic == null) {
+                Log.e(TAG, "run: rcharacteristic is null" );
+                completeTask();
+                return;
+            }
+
+            int writeProperty, writeType = rWriteCharacteristic.getWriteType();
             switch (writeType) {
                 case WRITE_TYPE_DEFAULT:
                     writeProperty = PROPERTY_WRITE;
@@ -668,7 +707,10 @@ public class SimpleBluetoothService {
         public void run() {
             if (manager.getConnectionState(device, GATT) == STATE_DISCONNECTED) {
                 Log.d(TAG, "run: aborting connection to device: " + device.getName());
-                mainActivity().setLeftPairedBtnMode(MainActivity.MODE_DISCONNECTED);
+                if (device.getName().contains(lName))
+                    mainActivity().setLeftPairedBtnMode(MainActivity.MODE_DISCONNECTED);
+                else
+                    mainActivity().setRightPairedBtnMode(MainActivity.MODE_DISCONNECTED);
                 gatt.close();
                 completeTask();
                 return;

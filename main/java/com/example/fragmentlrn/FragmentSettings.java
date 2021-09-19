@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.util.TypedValue.COMPLEX_UNIT_PX;
 import static com.example.fragmentlrn.MainActivity.MODE_CONNECTED;
 import static com.example.fragmentlrn.MainActivity.MODE_CONNECTING;
 import static com.example.fragmentlrn.MainActivity.MODE_DISCONNECTED;
@@ -157,6 +158,16 @@ public class FragmentSettings extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: " + ecoBtn.getTextSize());
+
+        if (ecoBtn.getHeight() != normBtn.getHeight()) {
+            Log.d(TAG, "onResume: heights are different");
+            Log.d(TAG, "onResume: eco: " + ecoBtn.getHeight() + " norm: " + normBtn.getHeight());
+            Log.d(TAG, "onResume: text size: " + ecoBtn.getTextSize());
+            ecoBtn.setTextSize(COMPLEX_UNIT_PX, ecoBtn.getTextSize() - 10);
+            normBtn.setTextSize(COMPLEX_UNIT_PX,normBtn.getTextSize() - 10);
+            maxBtn.setTextSize(COMPLEX_UNIT_PX,maxBtn.getTextSize() - 10);
+
+        }
         // checkModeButtonHeight();
     }
 
@@ -188,7 +199,7 @@ public class FragmentSettings extends Fragment {
             return;
         }
         Log.d(TAG, "showListOfDevices: showing " + tag + " devices");
-        // dialogFound.setDeviceList(tag.equals("right") ? mainActivity().service.getRightDeviceList() : mainActivity().service.getLeftDeviceList(), tag.equals("left"));
+        // dialogFound.setDeviceList(tag.equals("right") ? mainActivity().service.getRightDevicesList() : mainActivity().service.getLeftDevicesList(), tag.equals("left"));
         dialogFound.show(getActivity().getSupportFragmentManager(), tag);
     }
 
@@ -285,6 +296,10 @@ public class FragmentSettings extends Fragment {
             case MODE_CONNECTING: setRightButtonYellow(); break;
 
         }
+    }
+
+    public void showToast(String msg) {
+        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT);
     }
 
     private void setLeftButtonConnected() {

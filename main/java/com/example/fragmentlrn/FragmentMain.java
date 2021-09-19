@@ -2,6 +2,7 @@ package com.example.fragmentlrn;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Looper;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
@@ -14,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -130,5 +132,9 @@ public class FragmentMain extends Fragment {
             lighterBtn.setImageResource(R.drawable.lighter_off_drawable);
         }
         update();
+    }
+
+    public void showToast(String msg) {
+        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT);
     }
 }

@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -12,7 +13,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
@@ -78,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
         lastChecked = device;
     }
 
+    private MainActivity mainActivity() { return this;}
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,10 +104,37 @@ public class MainActivity extends AppCompatActivity {
             }
         }, 1000);
         adapter = BluetoothAdapter.getDefaultAdapter();
-        service = new SimpleBluetoothService(this);
+        if (!adapter.isEnabled()) {
+            Log.d(TAG, "onCreate: bluetooth is not enabled, enabling");
+            Intent enable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            openSomeActivityForResult(enable);
+        } else {
+            service = new SimpleBluetoothService(this);
+        }
+
         if (!checkPermissions()) Log.e(TAG, "onCreate: required permissions not granted", new Exception("required permissions not granted"));
 
         }
+
+    public ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Log.d(TAG, "onActivityResult: bt enabled, everything is cool");
+                        service = new SimpleBluetoothService(getMainActivity(mainActivity()));
+                        // Intent data = result.getData();
+                    } else if (result.getResultCode() == RESULT_CANCELED) {
+                        Log.e(TAG, "onActivityResult: bluetooth not enabled" );
+                        android.os.Process.killProcess(android.os.Process.myPid());
+                    }
+                }
+            });
+
+    public void openSomeActivityForResult(Intent intent) {
+        someActivityResultLauncher.launch(intent);
+    }
 
     private void setupViewPager(ViewPager2 viewPager) {
         PagerAdapter adapter = new PagerAdapter(this);
@@ -147,13 +182,14 @@ public class MainActivity extends AppCompatActivity {
 
     public void setLeftPairedBtnMode(int mode) {
         Log.d(TAG, "setLeftPairedBtnMode: " + mode);
-        if (mode == MODE_CONNECTED) fragmentSettings.setLeftButtonMode(mode);
+        /*if (mode == MODE_CONNECTED) fragmentSettings.setLeftButtonMode(mode);
         if (mode == MODE_DISCONNECTED) fragmentSettings.setLeftButtonMode(mode);
         switch (mode) {
             case MODE_CONNECTED: fragmentSettings.setLeftButtonMode(mode); break;
             case MODE_CONNECTING: fragmentSettings.setLeftButtonMode(mode); break;
             case MODE_DISCONNECTED: fragmentSettings.setLeftButtonMode(mode); break;
-        }
+        }*/
+        fragmentSettings.setLeftButtonMode(mode);
     }
 
     public int getLeftPairedBtnMode() {
@@ -161,6 +197,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setRightPairedBtnMode(int mode) {
+        Log.d(TAG, "setRightPairedBtnMode: " + mode);
+        /*if (mode == MODE_CONNECTED) fragmentSettings.setRightButtonMode(mode);
+        if (mode == MODE_DISCONNECTED) fragmentSettings.setRightButtonMode(mode);
+        switch (mode) {
+            case MODE_CONNECTED: fragmentSettings.setRightButtonMode(mode); break;
+            case MODE_CONNECTING: fragmentSettings.setRightButtonMode(mode); break;
+            case MODE_DISCONNECTED: fragmentSettings.setRightButtonMode(mode); break;
+        }*/
+        fragmentSettings.setRightButtonMode(mode);
     }
 
     public int getRightPairedBtnMode() {
@@ -257,8 +302,8 @@ public class MainActivity extends AppCompatActivity {
         message[3] = setTemp;
         message[4] = pwm;
         message[5] = lightMode;
-        byte xor = message[0];
-        for (int co = 1; co < message.length; ++co) {
+        byte xor = message[1];
+        for (int co = 2; co < message.length; ++co) {
             xor = (byte)(xor ^ message[co]);
         }
         message[19] = xor;
@@ -275,8 +320,8 @@ public class MainActivity extends AppCompatActivity {
         // message[3] = setTemp;
         message[4] = pwm;
         message[5] = lightMode;
-        byte xor = message[0];
-        for (int co = 1; co < message.length; ++co) {
+        byte xor = message[1];
+        for (int co = 2; co < message.length; ++co) {
             xor = (byte)(xor ^ message[co]);
         }
         message[19] = xor;
@@ -302,8 +347,8 @@ public class MainActivity extends AppCompatActivity {
         // message[3] = setTemp;
         message[4] = (byte)((isOn ? 1 : 0) * powerMode);
         message[5] = (byte)(lighterIsOn ? 1 : 0);
-        byte xor = message[0];
-        for (int co = 1; co < message.length; ++co) {
+        byte xor = message[1];
+        for (int co = 2; co < message.length; ++co) {
             xor = (byte)(xor ^ message[co]);
         }
         message[19] = xor;
@@ -315,6 +360,14 @@ public class MainActivity extends AppCompatActivity {
         byte lighter = (byte)(lighterIsOn ? 1 : 0);
         byte[] message = createMessage(pwm, lighter);
         service.send(message);
+    }
+
+    public void toast(String msg) {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(mainActivity(), msg, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }
