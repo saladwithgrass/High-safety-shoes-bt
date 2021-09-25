@@ -32,7 +32,7 @@ public class FragmentMain extends Fragment {
     ImageButton lighterBtn, settingsBtn, onOffButton;
     ImageView leftBar, rightBar;
     boolean isOn, lighterIsOn;
-    TextView textView, rightTv;
+    TextView modeTv, rightTv, temperatureTv;
 
 
     String TAG = "mainFrag";
@@ -45,10 +45,11 @@ public class FragmentMain extends Fragment {
         onOffButton = view.findViewById(R.id.onOffBtn);
         leftBar = view.findViewById(R.id.leftBatteryIv);
         rightBar = view.findViewById(R.id.rightBatteryIv);
+        temperatureTv = view.findViewById(R.id.temperatureTv);
         Log.d(TAG, "onCreateView: main fragment started");
 
-        textView = view.findViewById(R.id.modeTv);
-        Log.d("tag", "onCreate: textwiew null: " + (textView == null));
+        modeTv = view.findViewById(R.id.modeTv);
+        Log.d("tag", "onCreate: textwiew null: " + (modeTv == null));
         String firstString = "РЕЖИМ | ";
         String secondString = "ЭКО";
         SpannableStringBuilder stringBuilder = new SpannableStringBuilder(firstString + secondString);
@@ -58,7 +59,7 @@ public class FragmentMain extends Fragment {
 
         rightTv = view.findViewById(R.id.rightTextTv);
 
-        textView.setText(stringBuilder);
+        modeTv.setText(stringBuilder);
         settingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -103,7 +104,7 @@ public class FragmentMain extends Fragment {
         SpannableStringBuilder stringBuilder = new SpannableStringBuilder(firstString + secondString);
         stringBuilder.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), firstString.length(),
                 firstString.length() + secondString.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-        textView.setText(stringBuilder);
+        modeTv.setText(stringBuilder);
     }
 
     public boolean isOn() {
@@ -137,4 +138,51 @@ public class FragmentMain extends Fragment {
     public void showToast(String msg) {
         Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT);
     }
+
+    public void setTemperature(String text) {
+        temperatureTv.setText(text);
+    }
+
+    public void setLeftBatteryPerCent(int percent) {
+        if (percent < 0 || percent > 100) {
+            Log.e(TAG, "setLeftBatteryPerCent: wrong percentage " + String.valueOf(percent));
+            return;
+        }
+
+        Log.d(TAG, "setLeftBatteryPerCent: " + String.valueOf(percent));
+
+        if (percent < 20) {
+            leftBar.setImageResource(R.drawable._20_battery_drawable);
+        } else if (percent < 40) {
+            leftBar.setImageResource(R.drawable._40_battery_drawable);
+        } else if (percent < 60) {
+            leftBar.setImageResource(R.drawable._60_battery_drawable);
+        } else if (percent < 80) {
+            leftBar.setImageResource(R.drawable._80_battery_drawable);
+        } else {
+            leftBar.setImageResource(R.drawable._100_battery_drawable);
+        }
+    }
+
+    public void setRightBatteryPerCent(int percent) {
+        if (percent < 0 || percent > 100) {
+            Log.e(TAG, "setRightBatteryPerCent: wrong percentage " + String.valueOf(percent));
+            return;
+        }
+
+        Log.d(TAG, "setRightBatteryPerCent: " + String.valueOf(percent));
+
+        if (percent < 20) {
+            rightBar.setImageResource(R.drawable._20_battery_drawable);
+        } else if (percent < 40) {
+            rightBar.setImageResource(R.drawable._40_battery_drawable);
+        } else if (percent < 60) {
+            rightBar.setImageResource(R.drawable._60_battery_drawable);
+        } else if (percent < 80) {
+            rightBar.setImageResource(R.drawable._80_battery_drawable);
+        } else {
+            rightBar.setImageResource(R.drawable._100_battery_drawable);
+        }
+    }
+
 }

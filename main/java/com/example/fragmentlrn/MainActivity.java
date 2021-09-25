@@ -213,12 +213,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void pairingFinished() {
+        // message might be sent to nothing, but expect answer
     }
 
     public void parseAndExecute(String message) {
     }
 
-    public void parseAndExecute(byte[] message) {}
+    public void parseAndExecute(byte[] message) {
+        if (message.length < 20) {
+            Log.d(TAG, "parseAndExecute: that's no reply");
+            return;
+        }
+        int pwm = (int)message[4], temp = (int)message[2] / 2,
+                batPercent = (int)message[6], batV = (int)message[7],
+                lighter = (int)message[5], side = (int)message[1];
+        fragmentSettings.setModeDontUpdate(pwm);
+        fragmentMain.setTemperature(String.valueOf(temp) + "°");
+        if (side == 1) {
+            // left
+            fragmentMain.setLeftBatteryPerCent(batPercent);
+        } else if (side == 2) {
+            // right
+            fragmentMain.setRightBatteryPerCent(batPercent);
+        } else {
+            // service
+            Log.d(TAG, "parseAndExecute: service message, ignoring");
+        }
+    }
 
     public Fragment getFragment(int index) {
         switch (index) {
@@ -267,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void scanForDevices() {
-        service.startScan();
+        service.startScanNow();
     }
 
     public void connectTo(BluetoothDevice device) {
@@ -368,6 +389,14 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(mainActivity(), msg, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void setTemperature(int temperature) {
+
+    }
+
+    public void setTextInTemperature(String text) {
+        fragmentMain.setTemperature(text);
     }
 
 }

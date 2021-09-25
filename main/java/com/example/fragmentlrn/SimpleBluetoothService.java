@@ -13,12 +13,14 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -121,7 +123,9 @@ public class SimpleBluetoothService {
         rightSavedMac = mainActivity().getRMac();
         Log.d(TAG, "SimpleBluetoothService: left saved mac: " + leftSavedMac);
         Log.d(TAG, "SimpleBluetoothService: right saved mac: " + rightSavedMac);
-        scanner.startScan(scanCallBack);
+        startScanNow();
+
+
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -158,11 +162,13 @@ public class SimpleBluetoothService {
                             lScan = false;
                             setLeftConnecting(false);
                             Log.d(TAG, "onConnectionStateChange: no longer connecting left");
+                            mainActivity().toast("left almost connected");
                         } else if (gatt == rGatt && rightConnecting) {
                             rBoot = gatt.getDevice();
                             rScan = false;
                             setRightConnecting(false);
                             Log.d(TAG, "onConnectionStateChange: no longer connecting right");
+                            mainActivity().toast("right almost connected");
                         }
 
                         discoverServicesRunnable = new Runnable() {
@@ -173,16 +179,19 @@ public class SimpleBluetoothService {
 
                                 if (!gattResult) {
                                     Log.e(TAG, "run: service discovery failed");
+                                    mainActivity().toast("failed to connect");
                                 }
                                 if (gatt == lGatt) {
                                     lConnected = true;
                                     mainActivity().setLeftPairedBtnMode(MainActivity.MODE_CONNECTED);
+                                    mainActivity().toast("left connected");
                                     if (rConnected) {
                                         ((MainActivity) context).pairingFinished();
                                     }
                                 } else {
                                     rConnected = true;
                                     mainActivity().setRightPairedBtnMode(MainActivity.MODE_CONNECTED);
+                                    mainActivity().toast("right connected");
                                     if (lConnected) {
                                         ((MainActivity) context).pairingFinished();
                                     }
@@ -303,12 +312,13 @@ public class SimpleBluetoothService {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
+            Log.d(TAG, "onCharacteristicRead: called");
         }
 
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
-
+            Log.d(TAG, "onCharacteristicWrite: called");
         }
 
         @Override
@@ -330,10 +340,13 @@ public class SimpleBluetoothService {
 
             String message;
             message = characteristic.getStringValue(0);
+            byte[] messageByte = characteristic.getValue();
             Log.d(TAG, "onCharacteristicChanged: received message: " + message);
             mainActivity().toast(message);
-            ((MainActivity) context).parseAndExecute(message);
+            mainActivity().setTextInTemperature(message);
+            // ((MainActivity) context).parseAndExecute(message);
             Log.d(TAG, "onCharacteristicChanged: completes");
+            mainActivity().parseAndExecute(messageByte);
             completeTask();
         }
 
@@ -399,8 +412,14 @@ public class SimpleBluetoothService {
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
+            if (errorCode == SCAN_FAILED_ALREADY_STARTED) {
+                Log.d(TAG, "onScanFailed: already started");
+                return;
+            }
+            mainActivity().toast("scan failed, you'd better reload the app");
             Log.e(TAG, "onScanFailed: scan failed: " + errorCode);
         }
+
     };
 
     private abstract class Task implements Runnable {
@@ -498,7 +517,7 @@ public class SimpleBluetoothService {
             mainActivity().setRightPairedBtnMode(MainActivity.MODE_SCANNING);
             mainActivity().setLeftPairedBtnMode(MainActivity.MODE_SCANNING);
             scanner.stopScan(scanCallBack);
-            scanner.startScan(null, scanSettings, scanCallBack);
+            startScanNow();
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -572,7 +591,12 @@ public class SimpleBluetoothService {
                 return;
             }
 
-            Log.d(TAG, "TaskSendLeft: sending " + message);
+            Log.d(TAG, "TaskSendLeft: sending " + message.toString());
+            String bytes = "";
+            for (byte byt : message) {
+                bytes += String.format("%02X ", byt);
+            }
+            Log.d(TAG, "TaskSendLeft: sending byte " + bytes);
             if (manager.getConnectionState(lBoot, GATT) != STATE_CONNECTED) {
                 Log.e(TAG, "TaskSendLeft: left device not connected, cant send");
                 completeTask();
@@ -604,8 +628,10 @@ public class SimpleBluetoothService {
             // lWriteCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
             if (!lGatt.writeCharacteristic(lWriteCharacteristic)) {
                 Log.e(TAG, "send: failed to write characteristic: " + lWriteCharacteristic.getUuid());
+                completeTask();
             } else {
                 Log.i(TAG, "send: successfully written");
+                mainActivity().toast("successfully sent");
             }
             // completeTask();
         }
@@ -681,8 +707,10 @@ public class SimpleBluetoothService {
             // lWriteCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
             if (!rGatt.writeCharacteristic(rWriteCharacteristic)) {
                 Log.e(TAG, "send: failed to write characteristic: " + rWriteCharacteristic.getUuid());
+                completeTask();
             } else {
                 Log.i(TAG, "send: successfully written");
+                mainActivity().toast("successfully sent");
             }
             // completeTask();
         }
@@ -788,7 +816,7 @@ public class SimpleBluetoothService {
     }
 
     private void onConnect(BluetoothDevice device) {
-        if (device == lBoot) {
+        if (device.getName().contains(lName)) {
             Log.d(TAG, "onConnect: left connected, sending settings");
             addTask(new TaskSendLeft(mainActivity().getDefaultMessage()));
         } else {
@@ -882,7 +910,6 @@ public class SimpleBluetoothService {
         handler.postDelayed(abort, TIME_TO_CONNECT_MS);
     }
 
-
     public void connectRight(BluetoothDevice device) {
         Log.d(TAG, "connectRight: " + device.getName() + " " + device.getAddress());
         if (rGatt != null) {
@@ -959,6 +986,7 @@ public class SimpleBluetoothService {
             strMessage += String.format("%02X ", byt);
         }
         Log.d(TAG, "send: sending " + strMessage);
+        Log.d(TAG, "send: " + message);
         tasks.add(new TaskSendLeft(message));
         tasks.add(new TaskSendRight(message));
         if (!queueBusy) nextTask();
@@ -1000,5 +1028,10 @@ public class SimpleBluetoothService {
     }
 
     private void sendRight(byte[] message) {}
+
+    void startScanNow(){
+        Log.d(TAG, "startScanNow");
+        scanner.startScan(null, scanSettings, scanCallBack);
+    }
 
 }

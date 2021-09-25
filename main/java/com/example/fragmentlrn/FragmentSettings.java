@@ -137,12 +137,6 @@ public class FragmentSettings extends Fragment {
             }
         });
 
-        listener = new RecyclerAdapter.ItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-
-            }
-        };
         try {
             Log.d(TAG, "onCreateView: " + getContext().getPackageManager().getActivityInfo(getActivity().getComponentName(), 0).getThemeResource());
         } catch (PackageManager.NameNotFoundException e) {
@@ -151,6 +145,7 @@ public class FragmentSettings extends Fragment {
         }
         /*Log.d(TAG, "onCreateView: " + endTimeBtn.getBackground());*/
         setEcoBtn(true);
+
         return view;
     }
 
@@ -268,6 +263,28 @@ public class FragmentSettings extends Fragment {
         update();
     }
 
+    public void setModeDontUpdate(int mode) {
+        Log.d(TAG, "setMode: " + endTimeBtn.getBackground());
+        FragmentMain mainFragment = (FragmentMain)(mainActivity().getFragment(1));
+        mainActivity().setPowerMode(mode);
+        if (mode == MODE_ECO) {
+            setEcoBtn(true);
+            setNormBtn(false);
+            setMaxBtn(false);
+            mainFragment.setModeText("ЭКО");
+        } else if(mode == MODE_NORM) {
+            setEcoBtn(false);
+            setNormBtn(true);
+            setMaxBtn(false);
+            mainFragment.setModeText("НОРМ");
+        } else {
+            setEcoBtn(false);
+            setNormBtn(false);
+            setMaxBtn(true);
+            mainFragment.setModeText("МАКС");
+        }
+    }
+
     private void setTimerUsed(boolean used) {
         /*Toast.makeText(getContext(), "" + endTimeBtn.getBackground(), Toast.LENGTH_LONG);*/
         if (used) {
@@ -347,5 +364,5 @@ public class FragmentSettings extends Fragment {
                 dialogFound.setDeviceList(mainActivity().service.getRightDevicesList(), false);
             }
     }
-
+    
 }
