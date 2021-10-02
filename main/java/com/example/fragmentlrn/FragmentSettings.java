@@ -266,7 +266,7 @@ public class FragmentSettings extends Fragment {
     public void setModeDontUpdate(int mode) {
         Log.d(TAG, "setMode: " + endTimeBtn.getBackground());
         FragmentMain mainFragment = (FragmentMain)(mainActivity().getFragment(1));
-        mainActivity().setPowerMode(mode);
+        if (mode > 0) mainActivity().setPowerMode(mode);
         if (mode == MODE_ECO) {
             setEcoBtn(true);
             setNormBtn(false);
@@ -287,6 +287,7 @@ public class FragmentSettings extends Fragment {
 
     private void setTimerUsed(boolean used) {
         /*Toast.makeText(getContext(), "" + endTimeBtn.getBackground(), Toast.LENGTH_LONG);*/
+        mainActivity().setTimerUsed(used);
         if (used) {
             startTimeBtn.setBackgroundResource(R.drawable.timer_on_button_drawable);
             endTimeBtn.setBackgroundResource(R.drawable.timer_on_button_drawable);

@@ -38,7 +38,7 @@
         app:srcCompat="@drawable/_20_battery_drawable" />
 
     <TextView
-        android:id="@+id/leftChargeTv"
+        android:id="@+id/rightChargeTv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="20%"
@@ -51,7 +51,7 @@
         app:layout_constraintBottom_toBottomOf="@id/rightBatteryIv"/>
 
     <TextView
-        android:id="@+id/rightChargeTv"
+        android:id="@+id/leftChargeTv"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="100%"

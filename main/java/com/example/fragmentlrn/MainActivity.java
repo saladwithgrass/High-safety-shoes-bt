@@ -25,8 +25,14 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.fragmentlrn.databinding.ActivityMainBinding;
 
-import java.util.List;
-
+/*
+* So, if you happen to be working with this app, first of all, good luck,
+* you'll need it,
+* second try to find SimpleBleTerminal by kai-morich on github,
+* it will help you understand some of my code better
+* and i'm sorry, you have to work with this ruptured version of bluetooth terminal glued to
+* that UI
+* */
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     static public final int MODE_DISCONNECTED = 4;
     static public final int MODE_NOT_FOUND = 5;
 
+    static public final int DELAY_BETWEEN_REQUESTS_MILLIS = 30000;
+
     private ActivityMainBinding binding;
 
     private PagerAdapter mPagerAdapter;
@@ -55,9 +63,14 @@ public class MainActivity extends AppCompatActivity {
     private FragmentLogo fragmentLogo;
     private int selected;
     private BluetoothDevice lastChecked;
+    private SerialSocket lSocket, rSocket;
+    public BluetoothScanner btScanner;
+
 
     public SimpleBluetoothService service;
     public BluetoothAdapter adapter;
+
+    private Handler timerHandler = new Handler(), requestHandler = new Handler();
 
     private int leftConnectBtnMode, rightConnectBtnMode;
     private String TAG = "MainActivity";
@@ -109,12 +122,21 @@ public class MainActivity extends AppCompatActivity {
             Intent enable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             openSomeActivityForResult(enable);
         } else {
-            service = new SimpleBluetoothService(this);
+            btScanner = new BluetoothScanner(this, adapter);
+            btScanner.startScan();
+            startRequestCycle();
+            // service = new SimpleBluetoothService(this);
+            if (!getLMac().equals("errL")) {
+                serialSocketConnectLeft(adapter.getRemoteDevice(getLMac()));
+            } else {
+                Log.d(TAG, "onCreate: ");
+            }
         }
 
-        if (!checkPermissions()) Log.e(TAG, "onCreate: required permissions not granted", new Exception("required permissions not granted"));
+        if (!checkPermissions() || !adapter.isEnabled())
+            Log.e(TAG, "onCreate: required permissions not granted", new Exception("required permissions not granted"));
 
-        }
+    }
 
     public ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -123,7 +145,10 @@ public class MainActivity extends AppCompatActivity {
                 public void onActivityResult(ActivityResult result) {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Log.d(TAG, "onActivityResult: bt enabled, everything is cool");
-                        service = new SimpleBluetoothService(getMainActivity(mainActivity()));
+                        // service = new SimpleBluetoothService(getMainActivity(mainActivity()));
+                        btScanner = new BluetoothScanner(mainActivity(), adapter);
+                        btScanner.startScan();
+                        startRequestCycle();
                         // Intent data = result.getData();
                     } else if (result.getResultCode() == RESULT_CANCELED) {
                         Log.e(TAG, "onActivityResult: bluetooth not enabled" );
@@ -170,14 +195,76 @@ public class MainActivity extends AppCompatActivity {
         return time;
     }
 
+    boolean timerIsUsed = false;
+
+    Runnable onTimerEnd = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "run: time to stop heating has come");
+            fragmentMain.setOnOff(false);
+            timerHandler.postDelayed(this, 24 * 60 * 60 * 1000);
+        }
+    },
+    onTimerStart = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, "run: time to start heating has come");
+            fragmentMain.setOnOff(true);
+            timerHandler.postDelayed(this, 24 * 60 * 60 * 1000);
+        }
+    };
+
     public void setStartTime(int hours, int minutes) {
-        timeOn = hours * 60 + minutes;
+        timeOnMinutes = hours * 60 + minutes;
         fragmentSettings.setStartTime(timeToStr(hours, minutes));
+        reScheduleTimerStart(timeOnMinutes);
     }
 
     public void setEndTime(int hours, int minutes) {
-        timeOff = hours * 60 + minutes;
+        timeOffMinutes = hours * 60 + minutes;
         fragmentSettings.setEndTime(timeToStr(hours, minutes));
+        reScheduleTimerEnd(timeOffMinutes);
+    }
+
+    private void reScheduleTimerStart(int timeInMinutes) {
+        long timeToStartMillis = timeInMinutes * 60 * 1000;
+        long currentMillis = System.currentTimeMillis();
+        timerHandler.removeCallbacks(onTimerStart);
+        if (currentMillis > timeToStartMillis) timeToStartMillis += 24 * 60 * 60 * 1000;
+        timerHandler.postDelayed(onTimerStart, timeToStartMillis - currentMillis);
+    }
+
+    private void reScheduleTimerEnd(int timeInMinutes) {
+        Log.d(TAG, "reScheduleTimerEnd: starting");
+        long timeToEndMillis = timeInMinutes * 60 * 1000;
+        long currentMillis = System.currentTimeMillis();
+        Log.d(TAG, "reScheduleTimerEnd: now: " + currentMillis / 1000 / 3600 + ':' + (currentMillis / 1000 / 60) % 60);
+        Log.d(TAG, "reScheduleTimerEnd: time to end: " + timeToEndMillis / 3600000 + ":" + (timeToEndMillis / 1000 / 60) % 60);
+        timerHandler.removeCallbacks(onTimerEnd);
+        if (currentMillis > timeToEndMillis) timeToEndMillis += 24 * 60 * 60 * 1000;
+        timerHandler.postDelayed(onTimerEnd, timeToEndMillis - currentMillis);
+    }
+
+    public void setTimerUsed(boolean used) {
+        timerIsUsed = used;
+        if (used) {
+            setStartTime(timeOnMinutes / 60, timeOnMinutes % 60);
+            setEndTime(timeOffMinutes / 60, timeOffMinutes % 60);
+        } else {
+            timerHandler.removeCallbacks(onTimerEnd);
+            timerHandler.removeCallbacks(onTimerStart);
+        }
+    }
+
+    public void startRequestCycle() {
+        requestHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: delayed request ");
+                sendMessage();
+                requestHandler.postDelayed(this, DELAY_BETWEEN_REQUESTS_MILLIS);
+            }
+        }, DELAY_BETWEEN_REQUESTS_MILLIS);
     }
 
     public void setLeftPairedBtnMode(int mode) {
@@ -227,18 +314,26 @@ public class MainActivity extends AppCompatActivity {
         int pwm = (int)message[4], temp = (int)message[2] / 2,
                 batPercent = (int)message[6], batV = (int)message[7],
                 lighter = (int)message[5], side = (int)message[1];
-        fragmentSettings.setModeDontUpdate(pwm);
-        fragmentMain.setTemperature(String.valueOf(temp) + "°");
-        if (side == 1) {
-            // left
-            fragmentMain.setLeftBatteryPerCent(batPercent);
-        } else if (side == 2) {
-            // right
-            fragmentMain.setRightBatteryPerCent(batPercent);
-        } else {
-            // service
-            Log.d(TAG, "parseAndExecute: service message, ignoring");
-        }
+        Runnable execute = new Runnable() {
+            @Override
+            public void run() {
+                fragmentSettings.setModeDontUpdate(pwm);
+                fragmentMain.setTemperature(String.valueOf(temp) + "°");
+                if (side == 1) {
+                    // left
+                    fragmentMain.setLeftBatteryPerCent(batPercent);
+                } else if (side == 2) {
+                    // right
+                    fragmentMain.setRightBatteryPerCent(batPercent);
+                } else {
+                    // service
+                    Log.d(TAG, "parseAndExecute: service message, ignoring");
+                }
+            }
+        };
+
+        runOnUiThread(execute);
+
     }
 
     public Fragment getFragment(int index) {
@@ -288,7 +383,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void scanForDevices() {
-        service.startScanNow();
+        // service.startScanNow();
+        btScanner.startScan();
     }
 
     public void connectTo(BluetoothDevice device) {
@@ -349,14 +445,17 @@ public class MainActivity extends AppCompatActivity {
         return message;
     }
 
-    private int powerMode, timeOn, timeOff;
-    private boolean isOn, lighterIsOn;
+    private int powerMode = 1, timeOnMinutes, timeOffMinutes;
+    private boolean isOn = false, lighterIsOn = false;
 
-    public void setOn(boolean on) {isOn = on;}
+    public void setOn(boolean on) { isOn = on; }
     public void setLighterOn(boolean on) {lighterIsOn = on;}
-    public void setPowerMode(int mode) {powerMode = mode;}
-    public void setTimeOn(int time) {timeOn = time;}
-    public void setTimeOff(int time) {timeOff = time;}
+    public void setPowerMode(int mode) {
+        powerMode = mode;
+    }
+    public void setTimeOn(int timeInMinutes) {timeOnMinutes = timeInMinutes;}
+    public void setTimeOff(int timeInMinutes) {
+        timeOffMinutes = timeInMinutes;}
 
     public byte[] getDefaultMessage() {
         byte[] message = new byte[20];
@@ -380,7 +479,12 @@ public class MainActivity extends AppCompatActivity {
         byte pwm = (byte)((isOn ? 1 : 0) * powerMode);
         byte lighter = (byte)(lighterIsOn ? 1 : 0);
         byte[] message = createMessage(pwm, lighter);
-        service.send(message);
+        Log.d(TAG, "sendMessage: is on: " + isOn);
+        Log.d(TAG, "sendMessage: pwm: " + powerMode);
+        Log.d(TAG, "sendMessage: lighter: " + lighterIsOn);
+        Log.d(TAG, "sendMessage: pwm: " + pwm);
+        if (lSocket != null) lSocket.send(message);
+        if (rSocket != null) rSocket.send(message);
     }
 
     public void toast(String msg) {
@@ -398,5 +502,32 @@ public class MainActivity extends AppCompatActivity {
     public void setTextInTemperature(String text) {
         fragmentMain.setTemperature(text);
     }
+
+    public void serialSocketConnectLeft(BluetoothDevice device) {
+        try {
+            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            // BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
+            // status("connecting...");
+            // connected = Connected.Pending;
+            lSocket = new SerialSocket(mainActivity().getApplicationContext(), this,  device);
+            lSocket.connect();
+        } catch (Exception e) {
+            //onSerialConnectError(e);
+        }
+    }
+
+    public void serialSocketConnectRight(BluetoothDevice device) {
+        try {
+            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            // BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
+            // status("connecting...");
+            // connected = Connected.Pending;
+            rSocket = new SerialSocket(mainActivity().getApplicationContext(), this, device);
+            rSocket.connect();
+        } catch (Exception e) {
+            //onSerialConnectError(e);
+        }
+    }
+
 
 }

@@ -32,7 +32,7 @@ public class FragmentMain extends Fragment {
     ImageButton lighterBtn, settingsBtn, onOffButton;
     ImageView leftBar, rightBar;
     boolean isOn, lighterIsOn;
-    TextView modeTv, rightTv, temperatureTv;
+    TextView modeTv, rightTv, temperatureTv, leftBatTv, rightBatTv;
 
 
     String TAG = "mainFrag";
@@ -46,6 +46,8 @@ public class FragmentMain extends Fragment {
         leftBar = view.findViewById(R.id.leftBatteryIv);
         rightBar = view.findViewById(R.id.rightBatteryIv);
         temperatureTv = view.findViewById(R.id.temperatureTv);
+        leftBatTv = view.findViewById(R.id.leftChargeTv);
+        rightBatTv = view.findViewById(R.id.rightChargeTv);
         Log.d(TAG, "onCreateView: main fragment started");
 
         modeTv = view.findViewById(R.id.modeTv);
@@ -115,7 +117,7 @@ public class FragmentMain extends Fragment {
         ((MainActivity)getActivity()).sendMessage();
     }
 
-    private void setOnOff(boolean on) {
+    public void setOnOff(boolean on) {
         ((MainActivity)getActivity()).setOn(on);
         if (on) {
             onOffButton.setImageResource(R.drawable.turn_off_drawable);
@@ -151,6 +153,8 @@ public class FragmentMain extends Fragment {
 
         Log.d(TAG, "setLeftBatteryPerCent: " + String.valueOf(percent));
 
+        leftBatTv.setText(percent + "%");
+
         if (percent < 20) {
             leftBar.setImageResource(R.drawable._20_battery_drawable);
         } else if (percent < 40) {
@@ -171,6 +175,8 @@ public class FragmentMain extends Fragment {
         }
 
         Log.d(TAG, "setRightBatteryPerCent: " + String.valueOf(percent));
+
+        rightBatTv.setText(percent + "%");
 
         if (percent < 20) {
             rightBar.setImageResource(R.drawable._20_battery_drawable);

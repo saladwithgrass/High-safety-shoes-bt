@@ -67,9 +67,11 @@ public class DialogFound extends DialogFragment {
         if (getTag() == null) {
             Log.e(TAG, "onCreateView: tag is null" );
         } else if (getTag().equals("left")) {
-            setDeviceList(getMainActivity(getActivity()).service.getLeftDevicesList(), true);
+            /*setDeviceList(getMainActivity(getActivity()).service.getLeftDevicesList(), true);*/
+            setDeviceList(getMainActivity(getActivity()).btScanner.getLeftDevicesList(), true);
         } else if (getTag().equals("right")) {
-            setDeviceList(getMainActivity(getActivity()).service.getRightDevicesList(), false);
+            /*setDeviceList(getMainActivity(getActivity()).service.getRightDevicesList(), false);*/
+            setDeviceList(getMainActivity(getActivity()).btScanner.getRightDevicesList(), true);
         } else {
             Log.e(TAG, "onCreateView: this is not right nor left");
         }
@@ -85,10 +87,12 @@ public class DialogFound extends DialogFragment {
                 Log.d(TAG, "onClick: device " + adapterForButton.getSelectedDevice().getName());
                 if (left) {
                     getMainActivity(getActivity()).rememberLeftAddress(adapterForButton.getSelectedDevice().getAddress());
+                    getMainActivity(getActivity()).serialSocketConnectLeft(adapterForButton.getSelectedDevice());
                 } else {
                     getMainActivity(getActivity()).rememberRightAddress(adapterForButton.getSelectedDevice().getAddress());
+                    getMainActivity(getActivity()).serialSocketConnectRight(adapterForButton.getSelectedDevice());
                 }
-                getMainActivity(getActivity()).connectTo(adapterForButton.getSelectedDevice());
+                // getMainActivity(getActivity()).connectTo(adapterForButton.getSelectedDevice());
                 dismiss();
             }
         });
