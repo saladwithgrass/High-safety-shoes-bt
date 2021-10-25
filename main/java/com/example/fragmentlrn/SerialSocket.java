@@ -50,7 +50,7 @@ class SerialSocket extends BluetoothGattCallback {
 
     private static final int MAX_MTU = 512; // BLE standard does not limit, some BLE 4.2 devices support 251, various source say that Android has max 512
     private static final int DEFAULT_MTU = 23;
-    private static final String TAG = "SerialSocket";
+    private String TAG = "SerialSocket";
 
     private final ArrayList<byte[]> writeBuffer;
     private final IntentFilter pairingIntentFilter;
@@ -64,18 +64,25 @@ class SerialSocket extends BluetoothGattCallback {
     private BluetoothGatt gatt;
     private BluetoothGattCharacteristic readCharacteristic, writeCharacteristic;
 
+    boolean left;
     private boolean writePending;
     private boolean canceled;
     private boolean connected;
     private int payloadSize = DEFAULT_MTU-3;
     private Context activity;
 
-    SerialSocket(Context context, Context activity, BluetoothDevice device) {
+    SerialSocket(Context context, Context activity, BluetoothDevice device, boolean left) {
         if(context instanceof Activity)
             throw new InvalidParameterException("expected non UI context");
         this.context = context;
         this.device = device;
         this.activity = activity;
+        this.left = left;
+        if (left) {
+            TAG += "L";
+        } else {
+            TAG += "R";
+        }
         writeBuffer = new ArrayList<>();
         pairingIntentFilter = new IntentFilter();
         pairingIntentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
@@ -121,6 +128,11 @@ class SerialSocket extends BluetoothGattCallback {
             } catch (Exception ignored) {}
             gatt = null;
             connected = false;
+        }
+        if (left) {
+            mainActivity().setLeftPairedBtnMode(MainActivity.MODE_DISCONNECTED);
+        } else {
+            mainActivity().setRightPairedBtnMode(MainActivity.MODE_DISCONNECTED);
         }
         try {
             context.unregisterReceiver(pairingBroadcastReceiver);
@@ -189,6 +201,7 @@ class SerialSocket extends BluetoothGattCallback {
                 Log.d(TAG, "onConnectionStateChange: discoverServices failed");
                 // onSerialConnectError(new IOException("discoverServices failed"));
         } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            onSerialDisconnect();
             if (connected)
                 // onSerialIoError     (new IOException("gatt status " + status));
                 Log.d(TAG, "onConnectionStateChange: gatt status: " + status);
@@ -199,6 +212,18 @@ class SerialSocket extends BluetoothGattCallback {
             Log.d(TAG, "unknown connect state "+newState+" "+status);
         }
         // continues asynchronously in onServicesDiscovered()
+    }
+
+    private void onSerialDisconnect() {
+        Log.d(TAG, "onSerialDisconnect: disconnected");
+        connected = false;
+        if (left) {
+            mainActivity().setLeftPairedBtnMode(MainActivity.MODE_DISCONNECTED);
+        } else {
+            mainActivity().setRightPairedBtnMode(MainActivity.MODE_DISCONNECTED);
+        }
+        mainActivity().toast((left ? "Левый" : "Правый") + " отключен");
+        mainActivity().btScanner.startScan(60000);
     }
 
     @Override
@@ -259,7 +284,9 @@ class SerialSocket extends BluetoothGattCallback {
             payloadSize = mtu - 3;
             Log.d(TAG, "payload size "+payloadSize);
         }
+        mainActivity().btScanner.notFoundDeviceConnected(device);
         connectCharacteristics3(gatt);
+
     }
 
     private void connectCharacteristics3(BluetoothGatt gatt) {
@@ -315,8 +342,6 @@ class SerialSocket extends BluetoothGattCallback {
                 // onCharacteristicChanged with incoming data can happen after writeDescriptor(ENABLE_INDICATION/NOTIFICATION)
                 // before confirmed by this method, so receive data can be shown before device is shown as 'Connected'.
                 onSerialConnect();
-                connected = true;
-                Log.d(TAG, "connected");
             }
         }
     }
@@ -391,6 +416,9 @@ class SerialSocket extends BluetoothGattCallback {
         delegate.onCharacteristicWrite(gatt, characteristic, status);
         if(canceled)
             return;
+        Log.d(TAG, "onCharacteristicWrite: " +
+                (device.getName().contains(mainActivity().lName) ? "left" : "right") +
+                    " written");
         if(characteristic == writeCharacteristic) { // NOPMD - test object identity
             Log.d(TAG,"write finished, status="+status);
             writeNext();
@@ -424,20 +452,28 @@ class SerialSocket extends BluetoothGattCallback {
      */
     private void onSerialConnect() {
         Log.d(TAG, "onSerialConnect: on serial connect");
-        if (device.getAddress().equals(mainActivity().getLMac())) {
+        connected = true;
+        if (device.getName().contains(mainActivity().lName)) {
             mainActivity().setLeftPairedBtnMode(MainActivity.MODE_CONNECTED);
         } else {
             mainActivity().setRightPairedBtnMode(MainActivity.MODE_CONNECTED);
         }
+        mainActivity().toast((left ? "Левый" : "Правый") + " подключен");
+        mainActivity().updateSelected(device);
+        send(mainActivity().getDefaultMessage());
 
     }
     
     private void onSerialRead(byte[] data) {
+        Log.d(TAG, "onSerialRead: " +
+                        (device.getName().contains(mainActivity().lName) ? "left" : "right") +
+                " responded");
         String messageStr = "";
         for (byte datum : data) {
             messageStr += String.format("%02X ", datum);
         }
-        Log.d(TAG, "onSerialRead: on serial read: " + messageStr);
+        // Log.d(TAG, "onSerialRead: on serial read:");
+        // Log.d(TAG, "onSerialRead: on serial read: " + messageStr);
         mainActivity().parseAndExecute(data);
         completeTask();
     }
@@ -481,7 +517,8 @@ class SerialSocket extends BluetoothGattCallback {
             for (byte datum : message) {
                 messageStr += String.format("%02X ", datum);
             }
-            Log.d(TAG, "taskSendMessage: sending " + messageStr);
+            Log.d(TAG, "taskSendMessage: sending");
+            // Log.d(TAG, "taskSendMessage: " + messageStr);
             try{
                 write(message);
             } catch (IOException e) {
@@ -522,4 +559,10 @@ class SerialSocket extends BluetoothGattCallback {
         nextTask();
     }
 
+    public BluetoothDevice getDevice() {
+        if (connected)
+            return device;
+        else
+            return null;
+    }
 }

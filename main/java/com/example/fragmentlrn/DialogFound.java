@@ -1,6 +1,9 @@
 package com.example.fragmentlrn;
 
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,9 +11,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -24,6 +31,8 @@ public class DialogFound extends DialogFragment {
     private Button btn = null;
     private List<BluetoothDevice> deviceList = null;
     private boolean left;
+    private Context mContext;
+    private TextDrawable searchInProgress = new TextDrawable("Идет поиск...");
 
     public DialogFound(List<BluetoothDevice> deviceList) {
         this.deviceList = deviceList;
@@ -31,6 +40,12 @@ public class DialogFound extends DialogFragment {
 
     public RecyclerAdapter getAdapter() {
         return (RecyclerAdapter) devicesRv.getAdapter();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mContext = context;
     }
 
     public boolean isLeft() {
@@ -49,10 +64,10 @@ public class DialogFound extends DialogFragment {
                 // mAdapter = new RecyclerAdapter(getContext(), deviceList, ((RecyclerAdapter)devicesRv.getAdapter()).getSelectedIndex());
                 mAdapter.noInit(getContext());
             } else {
-                mAdapter = new RecyclerAdapter(getContext(), deviceList);
+                mAdapter = new RecyclerAdapter(getContext(), deviceList, this);
             }
         } else {
-            mAdapter = new RecyclerAdapter(getContext(), deviceList);
+            mAdapter = new RecyclerAdapter(getContext(), deviceList, this);
         }
             devicesRv = v.findViewById(R.id.devicesRv);
 
@@ -69,9 +84,11 @@ public class DialogFound extends DialogFragment {
         } else if (getTag().equals("left")) {
             /*setDeviceList(getMainActivity(getActivity()).service.getLeftDevicesList(), true);*/
             setDeviceList(getMainActivity(getActivity()).btScanner.getLeftDevicesList(), true);
+            setConnectedSelected(getMainActivity(getActivity()).getLeftBoot());
         } else if (getTag().equals("right")) {
             /*setDeviceList(getMainActivity(getActivity()).service.getRightDevicesList(), false);*/
-            setDeviceList(getMainActivity(getActivity()).btScanner.getRightDevicesList(), true);
+            setDeviceList(getMainActivity(getActivity()).btScanner.getRightDevicesList(), false);
+            setConnectedSelected(getMainActivity(getActivity()).getRightBoot());
         } else {
             Log.e(TAG, "onCreateView: this is not right nor left");
         }
@@ -82,6 +99,12 @@ public class DialogFound extends DialogFragment {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (adapterForButton.getSelectedDevice() == null) {
+                    btn.setEnabled(false);
+                    Log.e(TAG, "onClick: device not selected" );
+                    return;
+                }
+                btn.setEnabled(true);
                 Log.d(TAG, "onClick: device chosen for " + (left ? "left" : "right"));
                 // error here because mAdapter was given as a value, not a reference
                 Log.d(TAG, "onClick: device " + adapterForButton.getSelectedDevice().getName());
@@ -104,11 +127,58 @@ public class DialogFound extends DialogFragment {
             Log.e(TAG, "setDeviceList: devices rv is null" );
             return;
         }
+        if (deviceList.size() != 0) {
+            devicesRv.setBackground(null);
+        } else {
+            devicesRv.setBackground(searchInProgress);
+            btn.setEnabled(false);
+        }
         this.deviceList = deviceList;
-        RecyclerAdapter mAdapter = new RecyclerAdapter(getContext(), deviceList, ((RecyclerAdapter)devicesRv.getAdapter()).getSelectedIndex());
+        RecyclerAdapter mAdapter = new RecyclerAdapter(mContext, deviceList, ((RecyclerAdapter)devicesRv.getAdapter()).getSelectedIndex(), this);
         // mAdapter.setClickListener(toMainActivity(getContext()).getListenerFromSetting());
         devicesRv.setAdapter(mAdapter);
         setNewAdapterForButton(mAdapter);
         this.left = left;
+    }
+
+    public void setConnectEnabled(boolean enabled){
+        if (btn == null) {
+            Log.e(TAG, "setConnectEnabled: connect button is null");
+            return;
+        }
+        btn.setEnabled(enabled);
+    }
+
+    public void setConnectedSelected(BluetoothDevice connectedDevice){
+        if(devicesRv == null) {
+            Log.e(TAG, "setConnectedSelected: devicesRv is null");
+            return;
+        }
+        RecyclerAdapter adapter = (RecyclerAdapter)devicesRv.getAdapter();
+        if (adapter == null) {
+            Log.e(TAG, "setConnectedSelected: dadpter is null");
+            return;
+        }
+        int index = -1;
+        List<BluetoothDevice> deviceData = adapter.getDeviceData();
+        for (int co = 0; co < deviceData.size(); ++co) {
+            if (deviceData.get(co).equals(connectedDevice)) {
+                index = co;
+            }
+        }
+        if (index == -1) {
+            Log.e(TAG, "setSelectedDevice: not found in device data");
+            return;
+        } else {
+            adapter.setSelectedIndex(index);
+            adapter.unselectLastChecked();
+            RecyclerAdapter.ViewHolder holder = (RecyclerAdapter.ViewHolder) devicesRv.findViewHolderForAdapterPosition(index);
+            if (holder != null) {
+                holder.setSelected();
+                adapter.setLastChecked(holder
+                );
+            }
+            else Log.e(TAG, "setConnectedSelected: holder is null");
+        }
     }
 }

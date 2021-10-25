@@ -23,12 +23,17 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     private final String TAG = "RecyclerAdapter";
     private int selectedIndex = -1;
     private ViewHolder lastChecked = null;
+    private DialogFound parent;
 
-    public RecyclerAdapter(Context context, List<BluetoothDevice> devices) {
+    public RecyclerAdapter(Context context, List<BluetoothDevice> devices, DialogFound parent) {
         // Log.d(TAG, "RecyclerAdapter: checking selected index " + selectedIndex);
+        this.parent = parent;
         nameData = new ArrayList<>();
         macData = new ArrayList<>();
         deviceData = devices;
+        if (selectedIndex == -1) {
+            parent.setConnectEnabled(false);
+        } else {parent.setConnectEnabled(true);}
         // selectedIndex = -1;
         for (BluetoothDevice device : devices) {
             nameData.add(device.getName());
@@ -37,8 +42,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         this.mInflater = LayoutInflater.from(context);
     }
 
-    public RecyclerAdapter(Context context, List<BluetoothDevice> devices, int selected) {
+    public RecyclerAdapter(Context context, List<BluetoothDevice> devices, int selected, DialogFound parent) {
         // Log.d(TAG, "RecyclerAdapter: checking selected index " + selectedIndex + " selected :" + selected);
+        this.parent = parent;
         nameData = new ArrayList<>();
         macData = new ArrayList<>();
         deviceData = devices;
@@ -64,6 +70,19 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         return new ViewHolder(view);
     }
 
+    public void setSelectedIndex(int index) {
+        selectedIndex = index;
+    }
+
+    public void unselectLastChecked() {
+        if (lastChecked == null) return;
+        lastChecked.setUnselected();
+    }
+
+    public void setLastChecked(ViewHolder holder) {
+        lastChecked = holder;
+    }
+
     @Override
     public void onBindViewHolder( RecyclerAdapter.ViewHolder holder, int position) {
         // Log.d(TAG, "onBindViewHolder: checking selected index " + selectedIndex);
@@ -87,14 +106,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         return getDevice(getSelectedIndex());
     }
 
-    public void select(int position) {
-
-    }
-
-    public void unselectAll() {
-
-    }
-
     @Override
     public int getItemCount() {
         // Log.d(TAG, "getItemCount: checking selected index " + selectedIndex);
@@ -111,6 +122,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     BluetoothDevice getDevice(int id) {
         // Log.d(TAG, "getDevice: checking selected index " + selectedIndex);
+        if (id >= deviceData.size() || id < 0) return null;
         return deviceData.get(id);
     }
 
@@ -130,15 +142,17 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             // Log.d(TAG, "ViewHolder: checking selected index " + selectedIndex);
             nameTv = itemView.findViewById(R.id.nameTv);
             selectedIv = itemView.findViewById(R.id.selectedIv);
+            if (selectedIndex >= 0 && selectedIndex < deviceData.size() &&
+                    getAdapterPosition() == selectedIndex) setSelected();
             itemView.setOnClickListener(this);
         }
 
-        private void setSelected() {
+        public void setSelected() {
             // Log.d(TAG, "setSelected: checking selected index " + selectedIndex);
             selectedIv.setImageResource(R.drawable.checked_drawable);
         }
 
-        private void setUnselected() {
+        public void setUnselected() {
             // Log.d(TAG, "setUnselected: checking selected index " + selectedIndex);
             selectedIv.setImageResource(R.drawable.unchecked_drawable);
         }
@@ -159,6 +173,10 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     public interface ItemClickListener {
         void onItemClick(View view, int position);
+    }
+
+    public List<BluetoothDevice> getDeviceData() {
+        return deviceData;
     }
 
 }

@@ -28,9 +28,9 @@ import com.example.fragmentlrn.databinding.ActivityMainBinding;
 /*
 * So, if you happen to be working with this app, first of all, good luck,
 * you'll need it,
-* second try to find SimpleBleTerminal by kai-morich on github,
+* second - try to find SimpleBleTerminal by kai-morich on github,
 * it will help you understand some of my code better
-* and i'm sorry, you have to work with this ruptured version of bluetooth terminal glued to
+* and i'm sorry that you have to work with this ruptured version of bluetooth terminal glued to
 * that UI
 * */
 
@@ -53,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
     static public final int DELAY_BETWEEN_REQUESTS_MILLIS = 30000;
 
+    public String lName, rName;
+
     private ActivityMainBinding binding;
 
     private PagerAdapter mPagerAdapter;
@@ -73,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private Handler timerHandler = new Handler(), requestHandler = new Handler();
 
     private int leftConnectBtnMode, rightConnectBtnMode;
+    private int currentFragment = 0;
     private String TAG = "MainActivity";
 
 
@@ -109,6 +112,10 @@ public class MainActivity extends AppCompatActivity {
         mViewPager.setUserInputEnabled(false);
         setupViewPager(mViewPager);
         navigateTo(0);
+        lName = getString(R.string.leftBootName);
+        rName = getString(R.string.rightBootName);
+        forgetRightAddress();
+        forgetLeftAddress();
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(new Runnable() {
             @Override
@@ -116,6 +123,8 @@ public class MainActivity extends AppCompatActivity {
                 navigateTo(1);
             }
         }, 1000);
+        // forgetLeftAddress();
+        // forgetRightAddress();
         adapter = BluetoothAdapter.getDefaultAdapter();
         if (!adapter.isEnabled()) {
             Log.d(TAG, "onCreate: bluetooth is not enabled, enabling");
@@ -161,6 +170,15 @@ public class MainActivity extends AppCompatActivity {
         someActivityResultLauncher.launch(intent);
     }
 
+    @Override
+    public void onBackPressed() {
+        if (currentFragment == 2) {
+            navigateTo(1);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     private void setupViewPager(ViewPager2 viewPager) {
         PagerAdapter adapter = new PagerAdapter(this);
         adapter.addFragment(new FragmentLogo());
@@ -173,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void navigateTo(int id) {
+        currentFragment = id;
         mViewPager.setCurrentItem(id);
     }
 
@@ -354,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString("leftmac", leftMac);
         editor.apply();
-        service.setlMac(leftMac);
+        // service.setlMac(leftMac);
     }
 
     public void rememberRightAddress(String rightMac) {
@@ -362,7 +381,21 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = preferences.edit();
         editor.putString("rightmac", rightMac);
         editor.apply();
-        service.setrMac(rightMac);
+        // service.setrMac(rightMac);
+    }
+
+    private void forgetLeftAddress() {
+        SharedPreferences preferences = this.getSharedPreferences("my_prefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.remove("leftmac");
+        editor.apply();
+    }
+
+    private void forgetRightAddress() {
+        SharedPreferences preferences = this.getSharedPreferences("my_prefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.remove("rightmac");
+        editor.apply();
     }
 
     public String getLMac() {
@@ -378,7 +411,12 @@ public class MainActivity extends AppCompatActivity {
     public void updateList() {
         Log.d(TAG, "updateList: updating list");
         if (fragmentSettings.isVisible()) {
-            fragmentSettings.updateList();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    fragmentSettings.updateList();
+                }
+            });
         }
     }
 
@@ -479,10 +517,10 @@ public class MainActivity extends AppCompatActivity {
         byte pwm = (byte)((isOn ? 1 : 0) * powerMode);
         byte lighter = (byte)(lighterIsOn ? 1 : 0);
         byte[] message = createMessage(pwm, lighter);
-        Log.d(TAG, "sendMessage: is on: " + isOn);
-        Log.d(TAG, "sendMessage: pwm: " + powerMode);
-        Log.d(TAG, "sendMessage: lighter: " + lighterIsOn);
-        Log.d(TAG, "sendMessage: pwm: " + pwm);
+        // Log.d(TAG, "sendMessage: is on: " + isOn);
+        // Log.d(TAG, "sendMessage: pwm: " + powerMode);
+        // Log.d(TAG, "sendMessage: lighter: " + lighterIsOn);
+        // Log.d(TAG, "sendMessage: pwm: " + pwm);
         if (lSocket != null) lSocket.send(message);
         if (rSocket != null) rSocket.send(message);
     }
@@ -509,7 +547,7 @@ public class MainActivity extends AppCompatActivity {
             // BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
             // status("connecting...");
             // connected = Connected.Pending;
-            lSocket = new SerialSocket(mainActivity().getApplicationContext(), this,  device);
+            lSocket = new SerialSocket(mainActivity().getApplicationContext(), this,  device, true);
             lSocket.connect();
         } catch (Exception e) {
             //onSerialConnectError(e);
@@ -522,12 +560,34 @@ public class MainActivity extends AppCompatActivity {
             // BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
             // status("connecting...");
             // connected = Connected.Pending;
-            rSocket = new SerialSocket(mainActivity().getApplicationContext(), this, device);
+            rSocket = new SerialSocket(mainActivity().getApplicationContext(), this, device, false);
             rSocket.connect();
         } catch (Exception e) {
             //onSerialConnectError(e);
         }
     }
 
+    public void updateSelected(BluetoothDevice device) {
+        if (fragmentSettings.isVisible()) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    fragmentSettings.updateListWithConnected(device);
+                }
+            });
+        }
+
+    }
+
+    public BluetoothDevice getLeftBoot() {
+        if (lSocket == null) return null;
+        return lSocket.getDevice();
+    }
+
+    public BluetoothDevice getRightBoot() {
+        if (rSocket == null) return null;
+
+        return rSocket.getDevice();
+    }
 
 }

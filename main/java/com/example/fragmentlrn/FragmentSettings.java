@@ -31,13 +31,14 @@ public class FragmentSettings extends Fragment {
     private String TAG = "SettingsFrag";
 
     private final int MODE_ECO = 1, MODE_NORM = 2, MODE_MAX = 3;
-    private List<BluetoothDevice> lDevices, rDevices;
+    private List<BluetoothDevice> lDevices = new ArrayList<>(), rDevices = new ArrayList<>();
     private ImageButton backBtn, leftConnectBtn, rightConnectBtn;
     private Button ecoBtn, normBtn, maxBtn, startTimeBtn, endTimeBtn;
     private SwitchCompat timerSw;
     boolean timerUsed;
     private TimeDialogFragment timeDialogFragment;
-    private DialogFound dialogFound;
+    private DialogFound dialogFound = new DialogFound(lDevices);
+    private int leftMode, rightMode = leftMode = MODE_CONNECTING;
 
     public RecyclerAdapter.ItemClickListener listener;
 
@@ -62,13 +63,9 @@ public class FragmentSettings extends Fragment {
         leftConnectBtn = view.findViewById(R.id.leftConnectionStateBtn);
         rightConnectBtn = view.findViewById(R.id.rightConnectionStateBtn);
         timeDialogFragment = new TimeDialogFragment();
-        lDevices = new ArrayList<>();
-        rDevices = new ArrayList<>();
         lDevices.addAll(mainActivity().adapter.getBondedDevices());
-        dialogFound = new DialogFound(lDevices);
-
-        setLeftButtonMode(MODE_CONNECTING);
-        setRightButtonMode(MODE_CONNECTING);
+        setLeftButtonMode(leftMode);
+        setRightButtonMode(rightMode);
 
         timerUsed = false;
 
@@ -155,9 +152,10 @@ public class FragmentSettings extends Fragment {
         Log.d(TAG, "onResume: " + ecoBtn.getTextSize());
 
         if (ecoBtn.getHeight() != normBtn.getHeight()) {
-            Log.d(TAG, "onResume: heights are different");
+            /*Log.d(TAG, "onResume: heights are different");
             Log.d(TAG, "onResume: eco: " + ecoBtn.getHeight() + " norm: " + normBtn.getHeight());
             Log.d(TAG, "onResume: text size: " + ecoBtn.getTextSize());
+            */
             ecoBtn.setTextSize(COMPLEX_UNIT_PX, ecoBtn.getTextSize() - 10);
             normBtn.setTextSize(COMPLEX_UNIT_PX,normBtn.getTextSize() - 10);
             maxBtn.setTextSize(COMPLEX_UNIT_PX,maxBtn.getTextSize() - 10);
@@ -168,19 +166,19 @@ public class FragmentSettings extends Fragment {
 
     private void checkModeButtonHeight() {
         if (ecoBtn.getHeight() != normBtn.getHeight() && (ecoBtn.getTextSize() > 30)) {
-            Log.d(TAG, "checkModeButtonHeight: eco and norm buttons have unequal height");
-            Log.d(TAG, "checkModeButtonHeight: scaling font down to " + (ecoBtn.getTextSize() - 1));
+            /*Log.d(TAG, "checkModeButtonHeight: eco and norm buttons have unequal height");
+            Log.d(TAG, "checkModeButtonHeight: scaling font down to " + (ecoBtn.getTextSize() - 1));*/
             ecoBtn.setTextSize(pxToSp(ecoBtn.getTextSize() - 1, getContext()));
             normBtn.setTextSize( pxToSp(normBtn.getTextSize() - 1, getContext()));
             maxBtn.setTextSize(pxToSp(maxBtn.getTextSize() - 1, getContext()));
             checkModeButtonHeight();
         }
-        Log.d(TAG, "checkModeButtonHeight: all ok");
+        // Log.d(TAG, "checkModeButtonHeight: all ok");
         normBtn.setHeight(ecoBtn.getHeight());
-        Log.d(TAG, "checkModeButtonHeight: eco: " + ecoBtn.getHeight() + " norm: " + normBtn.getHeight());
+        // Log.d(TAG, "checkModeButtonHeight: eco: " + ecoBtn.getHeight() + " norm: " + normBtn.getHeight());
     }
 
-    private MainActivity mainActivity() {
+    public MainActivity mainActivity() {
         return getMainActivity(getActivity());
     }
 
@@ -299,6 +297,11 @@ public class FragmentSettings extends Fragment {
 
     public void setLeftButtonMode(int mode) {
         Log.d(TAG, "setLeftButtonMode: " + mode);
+        leftMode = mode;
+        if (leftConnectBtn == null) {
+            Log.e(TAG, "setLeftButtonMode: left connect button is null");
+            return;
+        }
         switch (mode) {
             case MODE_CONNECTED: setLeftButtonConnected(); break;
             case MODE_DISCONNECTED: setLeftButtonDisconnected(); break;
@@ -308,6 +311,11 @@ public class FragmentSettings extends Fragment {
 
     public void setRightButtonMode(int mode) {
         Log.d(TAG, "setRightButtonMode: " + mode);
+        rightMode = mode;
+        if (rightConnectBtn == null) {
+            Log.e(TAG, "setRightButtonMode: right connect button is null");
+            return;
+        }
         switch (mode) {
             case MODE_CONNECTED: setRightButtonConnected(); break;
             case MODE_DISCONNECTED: setRightButtonDisconnected(); break;
@@ -356,14 +364,24 @@ public class FragmentSettings extends Fragment {
             return;
         }
 
+        // dialogFound.dismiss();
         Log.d(TAG, "updateList: updating list");
             if (dialogFound.isLeft()) {
                 Log.d(TAG, "updateList: setting new left device list");
-                dialogFound.setDeviceList(mainActivity().service.getLeftDevicesList(), true);
+                dialogFound.setDeviceList(mainActivity().btScanner.getLeftDevicesList(), true);
             } else {
                 Log.d(TAG, "updateList: setting new right device list");
-                dialogFound.setDeviceList(mainActivity().service.getRightDevicesList(), false);
+                dialogFound.setDeviceList(mainActivity().btScanner.getRightDevicesList(), false);
             }
     }
-    
+
+    public void updateListWithConnected(BluetoothDevice connected) {
+        if (dialogFound == null) {
+            Log.e(TAG, "updateListWithConnected: dialog found is null" );
+            return;
+        }
+        Log.d(TAG, "updateListWithConnected: updating selected");
+        dialogFound.setConnectedSelected(connected);
+    }
+
 }
