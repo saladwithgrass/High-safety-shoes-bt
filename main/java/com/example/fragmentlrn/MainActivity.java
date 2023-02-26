@@ -197,8 +197,14 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (getApplicationContext().checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+            if (getApplicationContext().checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                    getApplicationContext().checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                    getApplicationContext().checkSelfPermission(Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
+                    getApplicationContext().checkSelfPermission(Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.BLUETOOTH,
+                                                Manifest.permission.BLUETOOTH_ADMIN}, 1);
                 return false;
             }
         }
@@ -337,7 +343,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 fragmentSettings.setModeDontUpdate(pwm);
-                fragmentMain.setTemperature(String.valueOf(temp) + "°");
+                if (temp != 0) {
+                    fragmentMain.setTemperature(String.valueOf(temp) + "°");
+                } else {
+                    Log.d(TAG, "parse and execute: temperature is 0");
+                }
                 if (side == 1) {
                     // left
                     fragmentMain.setLeftBatteryPerCent(batPercent);
